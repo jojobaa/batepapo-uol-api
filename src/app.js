@@ -6,23 +6,38 @@ import joi from 'joi'
 
 dotenv.config();
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+const server = express();
+server.use(cors());
+server.use(json());
+
+const mongoClient = new MongoClient(process.env.MONGO_URI);
+let db;
+
+await mongoClient.connect().then(() => {
+	db = mongoClient.db("Bate papo uol");
+});
+
+// db.collection("users").insertOne({
+// 	email: "joao@email.com",
+// 	password: "minha_super_senha"
+// });
+
+// db.users.insert({name: 'João', lastStatus: 12313123});
+// db.message.insert({from: 'João', to: 'Todos', text: 'oi galera', type: 'message', time: '20:04:37'});
+// db.users.find(users);
 
 app.get("/", (req, res) => {
     // res.send('Hello World');
 });
-app.post('/pessoas', (req, res) => {
-    // pessoas.push({ name: "Fulano" });
-    // res.send(pessoa);
+app.post('/participants', async (req, res) => {
+  try{
+
+  }catch{
+    
+  }
+    // perticipants.push({ name: "Fulano" });
+    // res.send(participants);
   });
 
-// const mongoClient = new MongoClient("mongodb://localhost:27017");
-// let db;
 
-// mongoClient.connect().then(() => {
-// 	db = mongoClient.db("meu_lindo_projeto"); //O padrão é test
-// });
-
-app.listen(5000);
+app.listen(5000, () => console.log("Server in port 5000"));
