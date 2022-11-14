@@ -139,4 +139,20 @@ server.post("/status", async (req, res) => {
   }
 })
 
+async function removeOfflineUser(){
+  try{
+    const offlineUsers = await db.collection("participants").find({lastStatus: {$lt: Date.now()-10000}}).toArray();
+    const messageRemove = offlineUsers.map((offlineUser) => ({from: offlineUser.name, to: 'Todos', text: 'sai da sala...', type: 'status', time: dayjs().format("HH:mm:ss")}));
+
+    if(offlineUsers.length !== 0){
+      await db.collection("participants").deleteMany({lastStatus: {$lt: Date.now()-10000}});
+      await db.collection("messages").insertMany(messageRemove);
+    }
+  }catch(error){
+    console.log(error);
+  }
+}
+
+setInterval(removeOfflineUser, 15000)
+
 server.listen(5000, () => console.log("Server in port 5000"));
