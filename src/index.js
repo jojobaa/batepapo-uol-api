@@ -131,24 +131,24 @@ server.post("/status", async (req, res) => {
       res.sendStatus(409);
       return;
     }
-   await db.collection("participants").updateOne({name: user}, {$set: {lastStatus: Date.now()}})
-   res.sendStatus(200)
+    await db.collection("participants").updateOne({ name: user }, { $set: { lastStatus: Date.now() } })
+    res.sendStatus(200)
   } catch (error) {
     console.log(error);
     res.sendStatus(500);
   }
 })
 
-async function removeOfflineUser(){
-  try{
-    const offlineUsers = await db.collection("participants").find({lastStatus: {$lt: Date.now()-10000}}).toArray();
-    const messageRemove = offlineUsers.map((offlineUser) => ({from: offlineUser.name, to: 'Todos', text: 'sai da sala...', type: 'status', time: dayjs().format("HH:mm:ss")}));
+async function removeOfflineUser() {
+  try {
+    const offlineUsers = await db.collection("participants").find({ lastStatus: { $lt: Date.now() - 10000 } }).toArray();
+    const messageRemove = offlineUsers.map((offlineUser) => ({ from: offlineUser.name, to: 'Todos', text: 'sai da sala...', type: 'status', time: dayjs().format("HH:mm:ss") }));
 
-    if(offlineUsers.length !== 0){
-      await db.collection("participants").deleteMany({lastStatus: {$lt: Date.now()-10000}});
+    if (offlineUsers.length !== 0) {
+      await db.collection("participants").deleteMany({ lastStatus: { $lt: Date.now() - 10000 } });
       await db.collection("messages").insertMany(messageRemove);
     }
-  }catch(error){
+  } catch (error) {
     console.log(error);
   }
 }
