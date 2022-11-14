@@ -31,25 +31,25 @@ await mongoClient.connect().then(() => {
 server.post("/participants", async (req, res) => {
   const user = req.body.name;
   const validation = userSchema.validate(req.body, { abortEarly: false });
- 
+
   if (validation.error) {
     const errors = validation.error.details.map((detail) => detail.message);
     res.status(422).send(errors);
     return;
   }
 
-  try{
-    const userExist = await db.collection("participants").findOne({name: user})
+  try {
+    const userExist = await db.collection("participants").findOne({ name: user })
 
-    if(userExist){
+    if (userExist) {
       res.sendStatus(409);
       return;
     }
-    
-    await db.collection("participants").insertOne({name: user, lastStatus: Date.now()})
-    await db.collection("messages").insertOne({from: user, to: 'Todos', text: 'entra na sala...', type: 'status', time: dayjs().format("HH:mm:ss")})
+
+    await db.collection("participants").insertOne({ name: user, lastStatus: Date.now() })
+    await db.collection("messages").insertOne({ from: user, to: 'Todos', text: 'entra na sala...', type: 'status', time: dayjs().format("HH:mm:ss") })
     res.sendStatus(201);
-  }catch(error){
+  } catch (error) {
     console.log(error);
     res.sendStatus(500);
   }
@@ -57,11 +57,11 @@ server.post("/participants", async (req, res) => {
 })
 
 server.get("/participants", async (req, res) => {
-  try{
+  try {
     const users = await db.collection("participants").find().toArray();
     res.send(users);
     return;
-  }catch(error){
+  } catch (error) {
     console.log(error);
     res.sendStatus(500);
   }
@@ -73,24 +73,24 @@ server.post("/messages", async (req, res) => {
   const messageType = req.body.type;
   const messageFrom = req.headers.user;
   const validation = messageSchema.validate(req.body, { abortEarly: false });
- 
+
   if (validation.error) {
     const errors = validation.error.details.map((detail) => detail.message);
     res.status(422).send(errors);
     return;
   }
 
-  try{
-    const userExist = await db.collection("participants").findOne({name: messageFrom})
-    
-    if(!userExist){
+  try {
+    const userExist = await db.collection("participants").findOne({ name: messageFrom })
+
+    if (!userExist) {
       res.sendStatus(409);
       return;
     }
-    
-    await db.collection("messages").insertOne({from: messageFrom, to: messageTo, text: messageText, type: messageType, time: dayjs().format("HH:mm:ss")})
+
+    await db.collection("messages").insertOne({ from: messageFrom, to: messageTo, text: messageText, type: messageType, time: dayjs().format("HH:mm:ss") })
     res.sendStatus(201);
-  }catch(error){
+  } catch (error) {
     console.log(error);
     res.sendStatus(500);
   }
@@ -101,20 +101,39 @@ server.get("/messages", async (req, res) => {
   const limit = parseInt(req.query.limit);
   const user = req.headers.user;
 
-  try{
-    const texts = await db.collection("messages").find({$or:[
-    { 
-      to:"Todos"
-    },
-    {
-      to:user
-    },
-    {
-      from:user
-    }
-    ]}).sort({_id:-1}).limit(limit).toArray();
+  try {
+    const texts = await db.collection("messages").find({
+      $or: [
+        {
+          to: "Todos"
+        },
+        {
+          to: user
+        },
+        {
+          from: user
+        }
+      ]
+    }).sort({ _id: -1 }).limit(limit).toArray();
     res.send(texts.reverse());
-  }catch(error){
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+})
+
+server.post("/status", async (req, res) => {
+  const user = req.headers.user;
+  try {
+    const userExist = await db.collection("participants").findOne({ name: messageFrom })
+
+    if (!userExist) {
+      res.sendStatus(409);
+      return;
+    }
+   await db.collection("participants").updateOne({name: user}, {$set: {lastStatus: Date.now()}})
+   res.sendStatus(200)
+  } catch (error) {
     console.log(error);
     res.sendStatus(500);
   }
