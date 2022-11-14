@@ -97,4 +97,27 @@ server.post("/messages", async (req, res) => {
 
 })
 
+server.get("/messages", async (req, res) => {
+  const limit = parseInt(req.query.limit);
+  const user = req.headers.user;
+
+  try{
+    const texts = await db.collection("messages").find({$or:[
+    { 
+      to:"Todos"
+    },
+    {
+      to:user
+    },
+    {
+      from:user
+    }
+    ]}).sort({_id:-1}).limit(limit).toArray();
+    res.send(texts.reverse());
+  }catch(error){
+    console.log(error);
+    res.sendStatus(500);
+  }
+})
+
 server.listen(5000, () => console.log("Server in port 5000"));
